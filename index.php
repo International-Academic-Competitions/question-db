@@ -9,7 +9,7 @@ function db_connect($file) {
     $db = new PDO("sqlite:$file", '', '');
   }
   catch(PDOException $e) {
-    echo(var_dump($e));
+    error_log(var_dump($e));
     die("Could not connect to database.");
   }
   return $db;
@@ -29,7 +29,7 @@ function db_query($db, $sql, $params=[]) {
     return $result;
   }
   catch(Exception $e) {
-    file_put_contents("./error.txt", $e, FILE_APPEND);
+    error_log(var_dump($e));
     http_response_code(500);
     die();
   }

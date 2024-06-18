@@ -36,6 +36,7 @@ function db_query($db, $sql, $params=[]) {
 }
 
 $db = db_connect('./questions.db');
+$path = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
 ?>
 
 <!DOCTYPE html>
@@ -57,7 +58,7 @@ html {
 
 body {
   font-family: Verdana;
-  margin: 40px 10%;
+  margin: 40px 5%;
   line-height: 1.6;
   font-size: 16px;
   color: var(--text-color);
@@ -114,14 +115,24 @@ table ul {
   margin: 0;
 }
 
-tr {
+.packet tr {
+  display: grid;
+  grid-template-columns: 3fr 1fr;
+  width: 100%;
+}
+
+.search tr {
   display: grid;
   grid-template-columns: 3fr 1fr 1fr;
   width: 100%;
 }
 
 th, td {
-  padding: 1rem;
+  padding: 1rem .5rem;
+}
+
+tr .answer {
+  text-align: center;
 }
 
 form div, form fieldset {
@@ -131,22 +142,87 @@ form div, form fieldset {
 form label {
   display: block;
 }
+
+details {
+  border: 1px solid #aaa;
+  border-radius: 4px;
+  padding: 0.5em 0.5em 0;
+}
+
+summary {
+  font-weight: bold;
+  user-select: none;
+  margin: -0.5em -0.5em 0;
+  padding: 0.5em;
+}
+
+details[open] {
+  position: absolute;
+  background-color: white;
+}
 </style>
 
 
 <header>
   <a href=/><h1>IAC Question Database</h1></a>
 </header>
+
+<?php if (str_starts_with($path, '/packets')):
+$id = explode('/', $path)[2] ?? '';
+
+if ($id == '') {
+  $packets = db_query($db, "SELECT packet_id, name, filename FROM packets ORDER BY filename");
+  echo("<h2>All Packets</h2>");
+  echo("<ul>");
+  foreach($packets as $packet) {
+    $id = $packet['packet_id'];
+    $filename = $packet['filename'];
+    echo("<li><a href=/packets/$id>$filename</a>");
+  }
+  echo("</ul>");
+  die();
+}
+
+$packet = db_query($db, "SELECT name, filename FROM packets WHERE packet_id = ?", [$id])[0];
+$filename = $packet['filename'];
+echo("<h2>$filename</h2>");
+
+$questions = db_query($db, "
+  SELECT
+    question,
+    '<strong>' || replace(answer, '(', '</strong><br>(') as answer
+  FROM questions WHERE packet_id = ?
+  ", [$id]);
+?>
+<table class=packet>
+  <tr>
+    <th>Question</th>
+    <th>Answer</th>
+  </tr>
+  <?php foreach($questions as $question): ?>
+  <tr>
+    <td class=question><?= $question["question"]?></td>
+    <td class=answer><?= $question["answer"]?></td>
+  </tr>
+  <?php endforeach ?>
+</table>
+<?php
+die();
+endif
+?>
+
+<h2>Packets</h2>
 <p>
-  Questions loaded:
-  <?= db_query($db, "SELECT count(*) as count FROM questions")[0][0]?>
-</p>
+Questions loaded:
+<?= db_query($db, "SELECT count(*) as count FROM questions")[0][0]?>
+
+<p>
+See <a href=/packets>a list of all packets</a> in the database.
 
 <h2>Search</h2>
 <form method=GET action=/search>
 
 <?php
-$path = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
 $types = array();
 $query = $_GET['q'] ?? "";
 if ($path == '/search') {
@@ -193,12 +269,15 @@ $geography_checked = in_array("'GEOGRAPHY'", $types) || $path == '/';
       SELECT
         question,
         '<strong>' || replace(answer, '(', '</strong><br>(') as answer,
-        filename as packet
+        '<a href=/packets/' || packet_id || '>' || filename as link
         FROM questions
         LEFT JOIN packets USING (packet_id)
         WHERE answer like '%$query%' AND type IN ($types)
     )
-    SELECT question, answer, '<li>' || group_concat(packet, '<li>') as packet
+    SELECT
+      question,
+      answer,
+      '<li>' || group_concat(link, '<li>') as links
     FROM all_questions
     GROUP BY question
     LIMIT 500;
@@ -206,7 +285,9 @@ $geography_checked = in_array("'GEOGRAPHY'", $types) || $path == '/';
 ?>
 
 <h2>Results</h2>
-<table>
+<?= count($questions) ?> Results
+
+<table class=search>
   <tr>
     <th>Question</th>
     <th>Answer</th>
@@ -214,9 +295,14 @@ $geography_checked = in_array("'GEOGRAPHY'", $types) || $path == '/';
   </tr>
   <?php foreach($questions as $question): ?>
   <tr>
-    <td><?= $question["question"]?></td>
-    <td><?= $question["answer"]?></td>
-    <td><ul><?= $question["packet"]?></ul></td>
+    <td class=question><?= $question["question"]?></td>
+    <td class=answer><?= $question["answer"]?></td>
+    <td class=packets>
+      <details>
+        <summary>Show</summary>
+        <ul><?= $question["links"] ?></ul>
+      </details>
+    </td>
   </tr>
   <?php endforeach ?>
 </table>

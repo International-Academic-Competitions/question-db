@@ -41,6 +41,7 @@ $path = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
 
 <!DOCTYPE html>
 <title>IAC Question Database</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <style>
 :root {
   --text-color: #333;
@@ -167,22 +168,41 @@ details[open] {
   <a href=/><h1>IAC Question Database</h1></a>
 </header>
 
-<?php if (str_starts_with($path, '/packets')):
-$id = explode('/', $path)[2] ?? '';
+<?php if (str_starts_with($path, '/packets')): ?>
+<h2>All Packets</h2>
+<table>
 
-if ($id == '') {
-  $packets = db_query($db, "SELECT packet_id, name, filename FROM packets ORDER BY filename");
-  echo("<h2>All Packets</h2>");
-  echo("<ul>");
-  foreach($packets as $packet) {
-    $id = $packet['packet_id'];
-    $filename = $packet['filename'];
-    echo("<li><a href=/packets/$id>$filename</a>");
+  <tr>
+    <th>Name
+    <th>Year
+    <th>Division
+  </tr>
+  <?php
+  $id = explode('/', $path)[2] ?? '';
+
+  if ($id == '') {
+    $packets = db_query($db,
+      "SELECT packet_id, name, filename, year, division FROM packets ORDER BY filename
+    ");
+
+    foreach($packets as $packet) {
+      $id = $packet['packet_id'];
+      $filename = $packet['filename'];
+      $year = $packet['year'];
+      $division = $packet['division'];
+      echo("
+        <tr>
+          <td><a href=/packets/$id>$filename</a>
+          <td>$year
+          <td>$division
+      ");
+      }
+    echo ("</table>");
+    die();
   }
-  echo("</ul>");
-  die();
-}
+  ?>
 
+<?php
 $packet = db_query($db, "SELECT name, filename FROM packets WHERE packet_id = ?", [$id])[0];
 $filename = $packet['filename'];
 echo("<h2>$filename</h2>");
@@ -206,6 +226,7 @@ $questions = db_query($db, "
   </tr>
   <?php endforeach ?>
 </table>
+
 <?php
 die();
 endif
@@ -223,7 +244,7 @@ See <a href=/packets>a list of all packets</a> in the database.
 <form method=GET action=/search>
 
 <?php
-$types = array();
+  $types = array();
 $query = $_GET['q'] ?? "";
 if ($path == '/search') {
   if ($query == '') { redirect('/'); }
@@ -238,33 +259,33 @@ $science_checked = in_array("'SCIENCE'", $types) || $path == '/';
 $geography_checked = in_array("'GEOGRAPHY'", $types) || $path == '/';
 ?>
 
-<fieldset class=packet-types>
+  <fieldset class=packet-types>
   <legend>Packet Types</legend>
   <label>
-    <input name=history type=checkbox <?= $history_checked ? 'checked' : '' ?> autocomplete=off>
-    History
+  <input name=history type=checkbox <?= $history_checked ? 'checked' : '' ?> autocomplete=off>
+  History
   </label>
   <label>
-    <input name=science type=checkbox <?=  $science_checked ? 'checked' : '' ?> autocomplete=off>
-    Science
+  <input name=science type=checkbox <?=  $science_checked ? 'checked' : '' ?> autocomplete=off>
+  Science
   </label>
   <label>
-    <input name=geography type=checkbox <?= $geography_checked ? 'checked' : '' ?> autocomplete=off>
-    Geography
+  <input name=geography type=checkbox <?= $geography_checked ? 'checked' : '' ?> autocomplete=off>
+  Geography
   </label>
-</fieldset>
+  </fieldset>
 
-<div>
+  <div>
   <input name=q type=text value="<?=$query?>" autocomplete=off>
   <button>Search</button>
-</div>
-</form>
+  </div>
+  </form>
 
 <?php if ($path == '/search'):
-  // Note that $types is created above
-  $types = implode(", ", $types);
+// Note that $types is created above
+$types = implode(", ", $types);
 
-  $questions = db_query($db, "
+$questions = db_query($db, "
     WITH all_questions as (
       SELECT
         question,

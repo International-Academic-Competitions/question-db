@@ -112,6 +112,18 @@ table {
   width: 100%;
 }
 
+thead {
+  border-bottom: 3px solid gray;
+}
+
+th, td {
+  padding: 1rem .5rem;
+}
+
+tr .answer {
+  text-align: center;
+}
+
 table ul {
   margin: 0;
 }
@@ -128,12 +140,8 @@ table ul {
   width: 100%;
 }
 
-th, td {
-  padding: 1rem .5rem;
-}
-
-tr .answer {
-  text-align: center;
+.packet-list thead th {
+  text-align: left;
 }
 
 form div, form fieldset {
@@ -168,41 +176,45 @@ details[open] {
   <a href=/><h1>IAC Question Database</h1></a>
 </header>
 
-<?php if (str_starts_with($path, '/packets')): ?>
+<?php if ($path == '/packets'): ?>
 <h2>All Packets</h2>
-<table>
-
+<table class=packet-list>
+  <thead>
   <tr>
     <th>Name
     <th>Year
     <th>Division
   </tr>
-  <?php
-  $id = explode('/', $path)[2] ?? '';
-
-  if ($id == '') {
-    $packets = db_query($db,
-      "SELECT packet_id, name, filename, year, division FROM packets ORDER BY filename
-    ");
-
-    foreach($packets as $packet) {
-      $id = $packet['packet_id'];
-      $filename = $packet['filename'];
-      $year = $packet['year'];
-      $division = $packet['division'];
-      echo("
-        <tr>
-          <td><a href=/packets/$id>$filename</a>
-          <td>$year
-          <td>$division
-      ");
-      }
-    echo ("</table>");
-    die();
-  }
-  ?>
+  </thead>
 
 <?php
+$packets = db_query($db,
+  "SELECT packet_id, name, filename, year, division FROM packets ORDER BY filename
+");
+
+foreach($packets as $packet) {
+  $id = $packet['packet_id'];
+  $filename = $packet['filename'];
+  $year = $packet['year'];
+  $division = $packet['division'];
+  echo("
+    <tr>
+      <td><a href=/packets/$id>$filename</a>
+      <td>$year
+      <td>$division
+    </tr>
+  ");
+  }
+echo ("</table>");
+die();
+endif;
+?>
+
+<?php
+if (str_starts_with($path, '/packets')):
+
+$id = explode('/', $path)[2] ?? '';
+
 $packet = db_query($db, "SELECT name, filename FROM packets WHERE packet_id = ?", [$id])[0];
 $filename = $packet['filename'];
 echo("<h2>$filename</h2>");
@@ -244,8 +256,9 @@ See <a href=/packets>a list of all packets</a> in the database.
 <form method=GET action=/search>
 
 <?php
-  $types = array();
+$types = array();
 $query = $_GET['q'] ?? "";
+
 if ($path == '/search') {
   if ($query == '') { redirect('/'); }
 

@@ -109,11 +109,12 @@ input[type=checkbox] {
 
 table {
   border: 1px solid black;
+  border-collapse: collapse;
   width: 100%;
 }
 
 thead {
-  border-bottom: 3px solid gray;
+  border-bottom: 1px solid gray;
 }
 
 th, td {
@@ -176,12 +177,13 @@ details[open] {
   <a href=/><h1>IAC Question Database</h1></a>
 </header>
 
-<?php if ($path == '/packets'): ?>
+<?php if ($path == '/packets' || $path == '/packets/'): ?>
 <h2>All Packets</h2>
 <table class=packet-list>
   <thead>
   <tr>
-    <th>Name
+    <th>Filename
+    <th>Packet Name
     <th>Year
     <th>Division
   </tr>
@@ -194,12 +196,14 @@ $packets = db_query($db,
 
 foreach($packets as $packet) {
   $id = $packet['packet_id'];
+  $name = $packet['name'];
   $filename = $packet['filename'];
   $year = $packet['year'];
   $division = $packet['division'];
   echo("
     <tr>
       <td><a href=/packets/$id>$filename</a>
+      <td>$name
       <td>$year
       <td>$division
     </tr>
@@ -212,7 +216,6 @@ endif;
 
 <?php
 if (str_starts_with($path, '/packets')):
-
 $id = explode('/', $path)[2] ?? '';
 
 $packet = db_query($db, "SELECT name, filename FROM packets WHERE packet_id = ?", [$id])[0];
@@ -227,10 +230,12 @@ $questions = db_query($db, "
   ", [$id]);
 ?>
 <table class=packet>
+  <thead>
   <tr>
     <th>Question</th>
     <th>Answer</th>
   </tr>
+  </thead>
   <?php foreach($questions as $question): ?>
   <tr>
     <td class=question><?= $question["question"]?></td>
@@ -322,11 +327,13 @@ $questions = db_query($db, "
 <?= count($questions) ?> Results
 
 <table class=search>
+  <thead>
   <tr>
     <th>Question</th>
     <th>Answer</th>
     <th>Packet(s)</th>
   </tr>
+  </thead>
   <?php foreach($questions as $question): ?>
   <tr>
     <td class=question><?= $question["question"]?></td>

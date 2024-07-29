@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <title>Packets</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<link rel="stylesheet" href="/stylesheet.css">
+<link rel="stylesheet" href="/static/stylesheet.css">
 
 <header>
   <a href=/><h1>IAC Question Database</h1></a>

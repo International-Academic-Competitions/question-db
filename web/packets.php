@@ -1,6 +1,9 @@
 <!DOCTYPE html>
 <title>Packets</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="shortcut icon" href="/static/favicon.png" type="image/x-icon" >
+<link rel="apple-touch-icon" sizes="180x180" href="/static/favicon57.png" >
+<link rel="icon" sizes="192x192" href="/static/favicon57.png">
 <link rel="stylesheet" href="/static/stylesheet.css">
 
 <header>

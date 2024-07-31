@@ -16,6 +16,7 @@
   <thead>
   <tr>
     <th>Filename
+    <th>Category
     <th>Packet Name
     <th>Year
     <th>Division
@@ -33,9 +34,22 @@ foreach($packets as $packet) {
   $filename = $packet['filename'];
   $year = $packet['year'];
   $division = $packet['division'];
+  $category = "<img class=cat-icon src=./static/question-icon.svg title=\"Unknown Packet\">";
+
+  if (str_contains($filename, 'Hist') || str_contains($name, 'Hist')) {
+    $category = "<img class=cat-icon src=./static/quill-icon.svg title=\"History Packet\">";
+  } else if (str_contains($filename, 'Geo') || str_contains($name, 'Geo')) {
+    $category = "<img class=cat-icon src=./static/globe-icon.svg title=\"Geography Packet\">";
+  } else if (str_contains($filename, 'Sci') || str_contains($name, 'Sci')) {
+    $category = "<img class=cat-icon src=./static/beaker-icon.svg title=\"Science Packet\">";
+  } else if (str_contains($filename, 'Aca') || str_contains($name, 'Aca')) {
+    $category = "<img class=cat-icon src=./static/cap-icon.svg title=\"Academic Packet\">";
+  }
+
   echo("
     <tr>
       <td><a href=/packets/$id>$filename</a>
+      <td>$category
       <td>$name
       <td>$year
       <td>$division

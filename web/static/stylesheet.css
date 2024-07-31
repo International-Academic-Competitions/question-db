@@ -126,3 +126,7 @@ details[open] {
   background-color: white;
 }
 
+img.cat-icon {
+  height: 25px;
+  width: 25px;
+}
